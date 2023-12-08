@@ -28,7 +28,9 @@ class Logs(models.Model):
         on_delete=models.CASCADE,
         help_text="""
         گروهی که ربات بر روی آن قرار دارد""",
-        editable=False
+        editable=False,
+        null=True,
+        blank=True
     )
     
     desc = models.TextField(

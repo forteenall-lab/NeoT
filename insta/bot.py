@@ -1,8 +1,9 @@
 from account.models import Accounts
 from log.models import Logs
-from orders.models import Orders
+from orders.models import Orders, OrderStatus
 from instagrapi import Client
 from random import randint
+from asgiref.sync import sync_to_async
 from time import sleep
 
 
@@ -12,8 +13,10 @@ class InstaBot:
         self.account = account
         self.client = Client()
         self.target = None
-        
+        self.onWork = False
+        print(f"create {self.account.username} done.")
         self.login()
+        print(f"login {self.account.username} done.")
 
     @property
     def watchDelay(self):
@@ -46,20 +49,28 @@ class InstaBot:
     @property
     def botOrders(self):
         """get bot orders"""
-        return Orders.objects.filter(group_id=self.account.group.all().values_list("pk", falt=True))
+        return Orders.objects.filter(
+            group_id=self.account.group.all().values_list("pk", falt=True),
+            status=OrderStatus.ENEBALE
+        )
     
     def login(self):
         """login insta account"""
-        self.client.login(self.account.username, self.account.password)
-        self.logAction()
+        try:
+            self.client.login(self.account.username, self.account.password)
+            self.logAction(f"login {self.account.username} bot.")
+        except Exception as e:
+            self.logAction(f"error in login {self.account.username}")
+            self.account.active = False
+            self.account.save()
 
     def logAction(self, desc:str, order:Orders|None=None):
         """log what's bot do"""
-        
+        print(desc)
         log = Logs(
             bot=self.account,
             order=order,
-            group=order.group,
+            group=None if order is None else order.group,
             desc=desc,
         )
         log.save()
@@ -98,13 +109,17 @@ class InstaBot:
         self.target = self.client.user_id_from_username(ID)
         self.mediaCount = mediaCount
     
+    @sync_to_async
     def start(self):
         """
         this function get all target of group
         that equle with bot group
         get bot posts and do action in posts
         """
-
+        for o in range(10):
+            sleep(1)
+            print(o)
+        self.onWork = False
         orders = self.botOrders
         IDs = []
         for order in orders:
@@ -133,7 +148,10 @@ class InstaBot:
                 except Exception as e:
                     print("error :(")
                     print(e)
-                    
+                    self.account.active = False
+                    self.account.save()
+                    self.logAction(f"error in action {self.account.username} :(")
                     sleep(3600)
 
             sleep(self.restDelay*10)
+        self.onWork = False

@@ -56,9 +56,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "account",
+    "django_crontab",
     "core",
     "orders",
     "log"
+]
+
+CRONJOBS = [
+    ["* * * * *", "insta.cron.action"]
 ]
 
 MIDDLEWARE = [
