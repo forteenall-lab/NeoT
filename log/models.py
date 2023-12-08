@@ -18,7 +18,9 @@ class Logs(models.Model):
         on_delete=models.CASCADE,
         help_text="""
         سفارشی که این ربات بر روی آن فعال شده است""",
-        editable=False
+        editable=False,
+        null=True,
+        blank=True
     )
     group = models.ForeignKey(
         "account.Groups",

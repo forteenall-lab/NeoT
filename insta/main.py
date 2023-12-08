@@ -11,8 +11,9 @@ class InstaBot:
     def __init__(self, account:Accounts):
         self.account = account
         self.client = Client()
-        self.client.login(self.account.username, self.account.password)
         self.target = None
+        
+        self.login()
 
     @property
     def watchDelay(self):
@@ -46,6 +47,22 @@ class InstaBot:
     def botOrders(self):
         """get bot orders"""
         return Orders.objects.filter(group_id=self.account.group.all().values_list("pk", falt=True))
+    
+    def login(self):
+        """login insta account"""
+        self.client.login(self.account.username, self.account.password)
+        self.logAction()
+
+    def logAction(self, desc:str, order:Orders|None=None):
+        """log what's bot do"""
+        
+        log = Logs(
+            bot=self.account,
+            order=order,
+            group=order.group,
+            desc=desc,
+        )
+        log.save()
 
     def doAction(self, media, order):
         """do an action"""
@@ -58,8 +75,8 @@ class InstaBot:
         sleep(self.watchDelay)
         
         self.logAction(
+            desc="لایک پست انجام شد",
             order=order,
-            desc="لایک پست انجام شد"
         )
         
         # add number in database   
@@ -81,18 +98,13 @@ class InstaBot:
         self.target = self.client.user_id_from_username(ID)
         self.mediaCount = mediaCount
     
-    def logAction(self, order:Orders, desc:str):
-        """log what's bot do"""
-        
-        log = Logs(
-            bot=self.account,
-            order=order,
-            group=order.group,
-            desc=desc,
-        )
-        log.save()
-
     def start(self):
+        """
+        this function get all target of group
+        that equle with bot group
+        get bot posts and do action in posts
+        """
+
         orders = self.botOrders
         IDs = []
         for order in orders:
@@ -115,7 +127,7 @@ class InstaBot:
                     # check for loops
                     if doActionCount == self.account.actionCount:
                         doActionCount += self.doActionCount 
-                        self.logAction(order=order, desc="اتمام عملیات لایک. شروع استراحت")
+                        self.logAction(desc="اتمام عملیات لایک. شروع استراحت", order=order)
                         sleep(self.restDelay)
                         
                 except Exception as e:
