@@ -29,6 +29,14 @@ class Logs(models.Model):
         editable=False
     )
     
+    desc = models.TextField(
+        verbose_name="توضیحات",
+        null=True,
+        blank=True,
+        editable=False,
+        max_length=2000,
+    )
+    
     def __str__(self):
         return f"{self.bot} -> {self.order}"
 

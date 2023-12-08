@@ -97,6 +97,14 @@ class Accounts(models.Model):
         عدد رندوم اکشن ربات از این مقدار کمتر خواهد بود"""
     )
     
+    actionCount = models.IntegerField(
+        "تعداد عملیات",
+        default=10,
+        help_text="""
+        تعداد عملیاتی که این ربات تا بحال انجام داده است"""
+    )
+    
+    
 
     def __str__(self):
         return self.name
