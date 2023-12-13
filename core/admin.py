@@ -47,4 +47,4 @@ class OrderPanel(admin.ModelAdmin):
 
 @admin.register(Logs)
 class OrderPanel(admin.ModelAdmin):
-    list_display = ["bot", "group", "order", "created_at"]
+    list_display = ["bot", "group", "order", "created_at", "desc"]

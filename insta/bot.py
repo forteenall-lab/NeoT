@@ -3,8 +3,8 @@ from log.models import Logs
 from orders.models import Orders, OrderStatus
 from instagrapi import Client
 from random import randint
+import asyncio
 from asgiref.sync import sync_to_async
-from time import sleep
 
 
 class InstaBot:
@@ -14,9 +14,10 @@ class InstaBot:
         self.client = Client()
         self.target = None
         self.onWork = False
-        print(f"create {self.account.username} done.")
-        self.login()
-        print(f"login {self.account.username} done.")
+        print(f"create bot {self.account.username} done.")
+        
+        
+        return None
 
     @property
     def watchDelay(self):
@@ -46,34 +47,7 @@ class InstaBot:
         
         return self.client.usertag_medias(self.target, self.mediaCount)
 
-    @property
-    def botOrders(self):
-        """get bot orders"""
-        return Orders.objects.filter(
-            group_id=self.account.group.all().values_list("pk", falt=True),
-            status=OrderStatus.ENEBALE
-        )
-    
-    def login(self):
-        """login insta account"""
-        try:
-            self.client.login(self.account.username, self.account.password)
-            self.logAction(f"login {self.account.username} bot.")
-        except Exception as e:
-            self.logAction(f"error in login {self.account.username}")
-            self.account.active = False
-            self.account.save()
 
-    def logAction(self, desc:str, order:Orders|None=None):
-        """log what's bot do"""
-        print(desc)
-        log = Logs(
-            bot=self.account,
-            order=order,
-            group=None if order is None else order.group,
-            desc=desc,
-        )
-        log.save()
 
     def doAction(self, media, order):
         """do an action"""
@@ -82,18 +56,7 @@ class InstaBot:
             return False
         
         # like the tag
-        self.client.media_like(media.id)                
-        sleep(self.watchDelay)
-        
-        self.logAction(
-            desc="لایک پست انجام شد",
-            order=order,
-        )
-        
-        # add number in database   
-        self.account.actionCount += 1
-        self.account.save()
-        
+        self.client.media_like(media.id)
         return True
     
     def setBotOnPage(self, ID:str, mediaCount:int=0):
@@ -109,20 +72,37 @@ class InstaBot:
         self.target = self.client.user_id_from_username(ID)
         self.mediaCount = mediaCount
     
-    @sync_to_async
-    def start(self):
+    
+    async def start(self):
         """
         this function get all target of group
         that equle with bot group
         get bot posts and do action in posts
         """
-        for o in range(10):
-            sleep(1)
-            print(o)
+        try:
+            self.client.login(self.account.username, self.account.password)
+            await Logs.objects.acreate(
+                bot=self.account,
+                desc=f"ورود به حساب کاربری ربات {self.account.username} با موفقیت انجام شد",
+            )
+            print(f"{self.account.name} login success ✅")
+        except Exception as e:
+            await Logs.objects.acreate(
+                bot=self.account,
+                desc=f"خطا در ورود به حساب کاربری  {self.account.username}",
+            )
+            self.account.active = False
+            self.account.save()
+            print(f"{self.account.name} login error")
+            
         self.onWork = False
-        orders = self.botOrders
+        tmp_groupid = []
+        # get groups of bot
+        async for group in self.account.group.all():
+            tmp_groupid.append(group.pk)
         IDs = []
-        for order in orders:
+        # start action
+        async for order in Orders.objects.filter(group_id__in=tmp_groupid, status=OrderStatus.ENEBALE):
             # check for exsits
             if order.campaignID in IDs:
                 continue
@@ -135,23 +115,42 @@ class InstaBot:
             for i, media in enumerate(self.targetMedias):
                 try:
                     
+                    # await for watch
+                    await asyncio.sleep(int(self.watchDelay/2))
                     # do action
                     if not self.doAction(media, order):
                         continue
-                    
+                    Logs.objects.acreate(
+                        bot=self.account,
+                        order=order,
+                        group=order.group,
+                        desc=f"لایک پست انجام شد {media.user.username} - {media.id}",
+                    )
+                    # await for watch
+                    await asyncio.sleep(int(self.watchDelay/2))
                     # check for loops
                     if doActionCount == self.account.actionCount:
                         doActionCount += self.doActionCount 
-                        self.logAction(desc="اتمام عملیات لایک. شروع استراحت", order=order)
-                        sleep(self.restDelay)
+                        Logs.objects.acreate(
+                            bot=self.account,
+                            order=order,
+                            group=order.group,
+                            desc="اتمام عملیات لایک. شروع استراحت",
+                        )
+                        await asyncio.sleep(self.restDelay)
                         
                 except Exception as e:
                     print("error :(")
                     print(e)
                     self.account.active = False
-                    self.account.save()
-                    self.logAction(f"error in action {self.account.username} :(")
-                    sleep(3600)
+                    await sync_to_async(self.account.save)()
+                    Logs.objects.acreate(
+                        bot=self.account,
+                        order=order,
+                        group=order.group,
+                        desc=f"خطا در انجام عملیات {self.account.username} :(",
+                    )
+                    await asyncio.sleep(3600)
 
-            sleep(self.restDelay*10)
+            await asyncio.sleep(self.restDelay*10)
         self.onWork = False
