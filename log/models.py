@@ -22,17 +22,6 @@ class Logs(models.Model):
         null=True,
         blank=True
     )
-    group = models.ForeignKey(
-        "account.Groups",
-        verbose_name="گروه ربات",
-        on_delete=models.CASCADE,
-        help_text="""
-        گروهی که ربات بر روی آن قرار دارد""",
-        editable=False,
-        null=True,
-        blank=True
-    )
-    
     desc = models.TextField(
         verbose_name="توضیحات",
         null=True,

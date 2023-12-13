@@ -1,16 +1,12 @@
 from django.contrib import admin
-from account.models import Accounts, Groups
+from account.models import Accounts
 from orders.models import Orders
 from log.models import Logs
 
-@admin.register(Groups)
-class GroupsPanel(admin.ModelAdmin):
-    list_display = ["pk", "name"]
 
 @admin.register(Accounts)
 class AccountPanel(admin.ModelAdmin):
     list_display = ["pk", "name", "username", "active"]
-    filter_vertical = ["group"]
     
     fieldsets = [
         (
@@ -20,7 +16,6 @@ class AccountPanel(admin.ModelAdmin):
                     "name",
                     "username",
                     "password",
-                    "group",
                     "active"
                 ]
             },
@@ -43,8 +38,9 @@ class AccountPanel(admin.ModelAdmin):
 
 @admin.register(Orders)
 class OrderPanel(admin.ModelAdmin):
-    list_display = ["pk", "name", "group", "status", "start", "end"]
+    list_display = ["pk", "name", "status"]
+    filter_horizontal = ["bots"]
 
 @admin.register(Logs)
-class OrderPanel(admin.ModelAdmin):
-    list_display = ["bot", "group", "order", "created_at", "desc"]
+class LogsPanel(admin.ModelAdmin):
+    list_display = ["bot", "order", "created_at", "desc"]

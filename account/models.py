@@ -2,24 +2,6 @@ from django.db import models
 
 
 
-
-class Groups(models.Model):
-    
-    name = models.CharField(
-        "نام گروه", 
-        max_length=50,
-        help_text="""
-        این نام صرفا جنبه نمایشی دارد و کاربردی در سیستم
-        نخواهد داشت"""
-    )
-
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        verbose_name_plural = "گروه بندی"
-    
-
 class Accounts(models.Model):
 
     name = models.CharField(
@@ -43,10 +25,6 @@ class Accounts(models.Model):
         رمزعبور اکانت ربات در اینیستاگرام"""
     )
     
-    group = models.ManyToManyField(
-        "account.Groups",
-        verbose_name="گروه ها"
-    )
     
     active = models.BooleanField(
         "فعال",

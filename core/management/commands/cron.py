@@ -1,29 +1,18 @@
 from django.core.management.base import BaseCommand
 from account.models import Accounts
 from insta.bot import InstaBot
-import asyncio
-from asgiref.sync import sync_to_async
+from orders.models import OrderStatus, Orders
+from subprocess import Popen
 
 
 
-
-async def main():
-    bots:dict[str, InstaBot] = {}
-    
-    while True:
-        print("check for installed bots")        
-        # set all bot into list
-        async for account in Accounts.objects.all():
-            if not account.active or account.name in list(bots.keys()):
-                continue
-            
-            bots[account.name] = InstaBot(account)
-            asyncio.create_task(bots[account.name].start())
-    
-        await asyncio.sleep(60)
 
 class Command(BaseCommand):
     
     def handle(self, *args, **options):
         print("NeoT start Working\nhappy hacking:)")
-        asyncio.run(main())
+        
+        for order in Orders.objects.filter(status=OrderStatus.ENEBALE):
+            for bot in order.bots.filter(active=True):
+                print(f"start shell for order: {order.pk} bot: {bot.pk}")
+                Popen([f"python manage.py run --order {order.pk} --bot {bot.pk}"], shell=True)

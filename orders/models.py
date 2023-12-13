@@ -25,12 +25,11 @@ class Orders(models.Model):
         اکشن انجام خواهد داد"""
     )
 
-    group = models.ForeignKey(
-        "account.Groups",
-        verbose_name="گروه عامل",
-        on_delete=models.CASCADE,
+    bots = models.ManyToManyField(
+        "account.Accounts",
+        verbose_name="ربات های عامل",
         help_text="""
-        این سفارش توسط گروه تعیین شده انجام
+        این سفارش توسط ربات های تعیین شده انجام
         خواهد شد"""
     )
     
@@ -44,18 +43,6 @@ class Orders(models.Model):
         انجام خواهند داد. در غیر اینصورت انجام نخواهد شد"""
     )
     
-    
-    start = models.TimeField(
-        "ساعت شروع گروه", 
-        help_text="""
-        در این زمان گروه ربات ها شروع به فعالیت خواهند کرد"""
-    )
-    
-    end = models.TimeField(
-        "ساعت پایان گروه", 
-        help_text="""
-        در این زمان گروه ربات ها به فعالیت خود پایان خواهند داد"""
-    )
     class Meta:
         verbose_name_plural = "کمپین ها"
 
