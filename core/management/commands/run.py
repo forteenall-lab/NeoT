@@ -48,14 +48,14 @@ class Command(BaseCommand):
             client.login(bot.username, bot.password)
             Logs.objects.create(
                 bot=bot,
-                desc=f"ورود به حساب کاربری ربات {bot.username} با موفقیت انجام شد",
+                desc=f"ورود به حساب کاربری ربات با موفقیت انجام شد",
             )
             print(f"{bot.name} login success ✅")
         except Exception as e:
             print(f"{bot.name} login error")
             Logs.objects.create(
                 bot=bot,
-                desc=f"خطا در ورود به حساب کاربری  {bot.username}",
+                desc=f"خطا در ورود به حساب کاربری \n{str(e)}",
             )
             bot.active = False
             bot.save()
@@ -64,7 +64,7 @@ class Command(BaseCommand):
         # find targeted medias
         target = client.user_id_from_username(order.campaignID)
         targetMedias = client.usertag_medias(target, 0)
-        
+        doActionCount = randint(bot.actionMin, bot.actionMax)
         # start action
         for media in targetMedias:
             try:
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                 sleep(int(randint(bot.watchMin, bot.watchMax)/2))
                 # check for loops
                 if doActionCount == bot.actionCount:
-                    doActionCount += randint(bot.actionMin, bot.actionMax) 
+                    doActionCount += randint(bot.actionMin, bot.actionMax)
                     Logs.objects.create(
                         bot=bot,
                         order=order,
@@ -103,6 +103,6 @@ class Command(BaseCommand):
                 Logs.objects.create(
                     bot=bot,
                     order=order,
-                    desc=f"خطا در انجام عملیات {bot.username} :(",
+                    desc=f"خطا در انجام عملیات :(\n{str(e)}",
                 )
                 sleep(3600)

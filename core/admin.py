@@ -43,4 +43,8 @@ class OrderPanel(admin.ModelAdmin):
 
 @admin.register(Logs)
 class LogsPanel(admin.ModelAdmin):
-    list_display = ["bot", "order", "created_at", "desc"]
+    list_display = ["bot", "_order", "created_at", "desc"]
+    list_filter = ["order"]
+    def _order(self, obj):
+         return obj.order
+    _order.empty_value_display = "سیستم"
