@@ -9,21 +9,6 @@ from instagrapi import Client
 
 
 
-# async def main():
-#     bots:dict[str, InstaBot] = {}
-    
-#     while True:
-#         print("check for installed bots")        
-#         # set all bot into list
-#         async for account in Accounts.objects.all():
-#             if not account.active or account.name in list(bots.keys()):
-#                 continue
-            
-#             bots[account.name] = InstaBot(account)
-#             asyncio.create_task(bots[account.name].start())
-    
-#         await asyncio.sleep(60)
-
 class Command(BaseCommand):
     
     def add_arguments(self, parser):
@@ -39,6 +24,7 @@ class Command(BaseCommand):
         # find order and bot
         order = Orders.objects.get(pk=orderID, status=OrderStatus.ENEBALE)
         bot = order.bots.get(pk=botID)
+        
         # create client
         client = Client()
         print("data founded. start login")
