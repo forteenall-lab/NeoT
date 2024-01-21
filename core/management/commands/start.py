@@ -32,7 +32,7 @@ class Command(BaseCommand):
                         continue
                     
                     print(f"start shell for order: {order.pk} bot: {bot.pk}")
-                    Popen([f"python manage.py run --order {order.pk} --bot {bot.pk}"], shell=True)
+                    Popen([f"python3 manage.py run --order {order.pk} --bot {bot.pk}"], shell=True)
                     bots.append(bot.pk)
                 orders.append(order.pk)
             sleep(60)
